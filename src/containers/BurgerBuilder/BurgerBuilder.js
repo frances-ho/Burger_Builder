@@ -28,6 +28,7 @@ class BurgerBuilder extends Component {
 
     // grab ingredients dynammically from our databse
     componentDidMount() {
+        console.log(this.props);
         axios.get('https://react-my-burger-81d66.firebaseio.com/ingredients.json')
             .then(response => {
                 this.setState({ingredients: response.data})
@@ -90,31 +91,18 @@ class BurgerBuilder extends Component {
         this.setState({purchasing: false})
     }
 
-    purchaseContinueHandler = () => {
-        //alert('You continue!');
-        this.setState({loading: true});
-        const order = {
-            ingredients: this.state.ingredients,
-            price: this.state.totalPrice,
-            customer: {
-                name: 'Frances Ho',
-                address : {
-                    street: '1209 Hunters Drive',
-                    zipCode: '30083',
-                    country: 'United States'
-                },
-            },
-            deliveryMethod: 'fastest'
+    purchaseContinueHandler = () => { 
+        const queryParams = [];
+        for(let i in this.state.ingredients){
+            // encode elements so it can be use in the URL
+            queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]));
         }
-
-        axios.post('/orders.json', order)
-            .then(response => {
-                //console.log(response)
-                this.setState({loading: false, purchasing: false});
-            })
-            .catch(error => {
-                this.setState({loading: false})
-            });
+        queryParams.push('price=' + this.state.totalPrice);
+        const queryString = queryParams.join('&');
+        this.props.history.push({
+            pathname: '/checkout',
+            search: '?' + queryString
+        });
     }
 
     render(){
